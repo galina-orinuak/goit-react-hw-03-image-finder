@@ -1,11 +1,16 @@
 import styles from './ImageGalleryItem.module.css'
 
 
-export const ImageGalleryItem = ({image}) => {
-    console.log(image, "image")
+export const ImageGalleryItem = ({image, showModal, showImg}) => {
+const onPictureClick =()=>{
+    showImg(image.largeImageURL);
+    showModal();
+}
+
+
     return (
         <li className={styles.galleryItem}>
-            <img src={image.webformatURL} alt={image.tags} />
+            <img className={styles.galleryImg} src={image.webformatURL} alt={image.tags} onClick={onPictureClick}/>
 </li>
      
     )}

@@ -1,11 +1,10 @@
-import {Component} from "react";
-import styles from './Modal.module.css'
+import styles from './Modal.module.css';
 
-export const Modal = () => {
+export const Modal = ({showImg, hideModal}) => {
     return (
-<div className={styles.overlay}>
+<div className={styles.overlay} onClick={hideModal} >
   <div className={styles.modal}>
-    <img src="" alt="" />
-  </div>
+    <img src={showImg} alt="" className={styles.modalImg}/>
+     </div>
 </div>
     )}
