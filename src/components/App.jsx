@@ -4,6 +4,7 @@ import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Button } from './Button/Button';
 import { Loader } from './Loader/Loader';
 import { Modal } from './Modal/Modal';
+import { fetchImages } from 'services/fetchImages';
 
 export class App extends Component {
   state = {
@@ -12,79 +13,75 @@ export class App extends Component {
     page: 1,
     showBtn: false,
     showLoader: false,
-    showModal:false,
-    showImg:''
+    showModal: false,
+    showImg: '',
   };
 
   onSubmitForm = query => {
-    this.setState({ query: '', galerryArr: [] });
-    this.setState({ query: query });
-    this.fetchApi(query, 1);
+    this.setState({ query, galerryArr: [], page: 1 });
   };
 
-  onButtomLoadMOre =()=>{
-    this.fetchApi(this.state.query,  this.state.page+1);
-    this.setState(prevState => ({page:prevState.page+1}))
-  }
+  onButtomLoadMOre = () => {
+    this.setState(prevState => ({ page: prevState.page + 1 }));
+  };
 
-  showModal = ()=>{
-    this.setState({showModal:true})
-  }
+  showModal = () => {
+    this.setState({ showModal: true });
+  };
 
-  hideModal = ()=>{
-    this.setState({showModal:false})
-  }
+  hideModal = () => {
+    this.setState({ showModal: false });
+  };
 
   showImg = imgLink => {
-    this.setState({showImg: imgLink})
-  }
+    this.setState({ showImg: imgLink });
+  };
 
-  fetchApi(query, page) {
-    const BASE_URL = 'https://pixabay.com/api/?';
-    const API_KEY = '39241175-920eb89e79fcd4cc7c8ced0a6';
-    const PER_PAGE = '12';
-    // const params = new URLSearchParams({
-    //   key: API_KEY,
-    //   q: {query},
-    //   image_type: 'photo',
-    //   orientation: 'horizontal',
-    //   page: {page},
-    //   per_page: PER_PAGE,
-    // });
-    // let URL = `${BASE_URL}${params}`;
+  async componentDidUpdate(prevProps, prevState) {
+    const { query, page } = this.state;
 
-    let URL = `${BASE_URL}q=${query}&page=${page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=${PER_PAGE}`;
+    if (prevState.query !== query || prevState.page !== page) {
+      try {
+        this.setState({ showLoader: true });
+        const  {data} = await fetchImages(query, page);
 
-    this.setState({ showLoader: true });
-
-    fetch(URL)
-      .then(response => response.json())
-      .then(data => {
-        console.log(data);
-        this.setState(prevState => ({
-          galerryArr: [...prevState.galerryArr, ...data.hits],
-        }));
-
+        const PER_PAGE = '12';
         const numberOfImages = data.totalHits;
         const downloadImages = PER_PAGE * this.state.page;
-        numberOfImages > downloadImages ? this.setState({ showBtn: true }) : this.setState({ showBtn: false })
-
-        this.setState({ showLoader: false })
-         
-      })
-      .catch(error => {
-        this.setState({ error });
-      });
+        if (
+          numberOfImages > downloadImages
+            ? this.setState({ showBtn: true })
+            : this.setState({ showBtn: false })
+        ) {
+        }
+        this.setState(prevState => ({
+                  galerryArr: [...prevState.galerryArr, ...data.hits],
+                }));
+      } catch (error) {
+        console.log(error);
+      } finally {
+        this.setState({ showLoader: false });
+      }
+    }
   }
+
   render() {
     return (
       <>
         <Searchbar onSubmitForm={this.onSubmitForm} />
-        <ImageGallery images={this.state.galerryArr} showModal={this.showModal} showImg={this.showImg}/>
-        {this.state.showBtn && <Button onClick={this.onButtomLoadMOre}/>}
+        <ImageGallery
+          images={this.state.galerryArr}
+          showModal={this.showModal}
+          showImg={this.showImg}
+        />
+        {this.state.showBtn && <Button onClick={this.onButtomLoadMOre} />}
         {this.state.showLoader && <Loader />}
-        {this.state.showModal && <Modal showImg={this.state.showImg} hideModal={this.hideModal}/>}
+        {this.state.showModal && (
+          <Modal showImg={this.state.showImg} hideModal={this.hideModal} />
+        )}
       </>
     );
   }
 }
+
+
